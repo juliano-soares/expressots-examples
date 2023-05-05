@@ -1,16 +1,18 @@
-<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 20px;">
-  <div style="display: flex; flex-direction: column; align-items: center;">
-    <img src="https://avatars.githubusercontent.com/u/124537431?s=200&v=4" width="100px" alt="logo ExpressoTS" />
-    <h1>ExpressoTS</h1>
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: center;">
-    <h1>+</h1>
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: center;" height="100px">
-    <img src="https://avatars.githubusercontent.com/u/177543?s=200&v=4" width="100px" alt="logo PostgreSQL" />
-    <h1>PostgreSQL</h1>
-  </div>
-</div>
+<table align="center">
+    <tr>
+        <td align="center">
+          <img src="https://avatars.githubusercontent.com/u/124537431?s=200&v=4" width="100px" alt="logo ExpressoTS" />
+          <p><strong>ExpressoTS</strong></p>        
+        </td>
+        <td align="center">
+          <p><strong>+</strong></p>
+        </td>
+        <td align="center">
+          <img src="https://avatars.githubusercontent.com/u/177543?s=200&v=4" width="100px" alt="logo PostgreSQL" />
+          <p><strong>PostgreSQL</strong></p>
+        </td>
+    </tr>
+</table>
 
 A project example of Expresso TS framework with PostgreSQL database 💾
 
