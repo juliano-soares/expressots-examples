@@ -1,16 +1,18 @@
-<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 20px;">
-  <div>
-    <img src="https://avatars.githubusercontent.com/u/124537431?s=200&v=4" width="100px" alt="logo ExpressoTS" />
-    <h1>ExpressoTS</h1>
-  </div>
-  <div>
-    <h1>+</h1>
-  </div>
-  <div>
-    <img src="https://avatars.githubusercontent.com/u/2452804?s=200&v=4" width="100px" alt="logo MySQL" />
-    <h1>MySQL</h1>
-  </div>
-</div>
+<table align="center">
+    <tr>
+        <td align="center">
+          <img src="https://avatars.githubusercontent.com/u/124537431?s=200&v=4" width="100px" alt="logo ExpressoTS" />
+          <p><strong>ExpressoTS</strong></p>        
+        </td>
+        <td align="center">
+          <p><strong>+</strong></p>
+        </td>
+        <td align="center">
+          <img src="https://avatars.githubusercontent.com/u/2452804?s=200&v=4" width="100px" alt="logo MySQL" />
+          <p><strong>MySQL</strong></p>
+        </td>
+    </tr>
+</table>
 
 A project example of Expresso TS framework with MySQL database 💾
 
