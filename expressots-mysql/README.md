@@ -1,12 +1,12 @@
 <div style="display: flex; align-items: center; justify-content: space-evenly; margin: 20px;">
-  <div style="display: flex; flex-direction: column; align-items: center;">
+  <div>
     <img src="https://avatars.githubusercontent.com/u/124537431?s=200&v=4" width="100px" alt="logo ExpressoTS" />
     <h1>ExpressoTS</h1>
   </div>
-  <div style="display: flex; flex-direction: column; align-items: center;">
+  <div>
     <h1>+</h1>
   </div>
-  <div style="display: flex; flex-direction: column; align-items: center;" height="100px">
+  <div>
     <img src="https://avatars.githubusercontent.com/u/2452804?s=200&v=4" width="100px" alt="logo MySQL" />
     <h1>MySQL</h1>
   </div>
