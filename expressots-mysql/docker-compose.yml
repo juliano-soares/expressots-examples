@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  database:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    ports:
+      - 3306:${MYSQL_PORT}
+    environment:
+      - MYSQL_USERNAME=${MYSQL_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB}
+    volumes:
+      - mysqldata:/data/mysqldata
+volumes:
+  mysqldata:
+    driver: local
