@@ -129,7 +129,7 @@ volumes:
 docker build .
 docker-compose up
 ```
-**Ready now you have postgresql database running with docker**
+**Ready now you have MySQL database running with docker**
 
 Your next steps now are to interact with the database by creating tables, adding new entities, querying, deleting and changing data.
 

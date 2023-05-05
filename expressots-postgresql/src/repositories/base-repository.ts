@@ -1,25 +1,28 @@
 import { provide } from "inversify-binding-decorators";
 import { IBaseRepository } from "./base-repository.interface";
 import { IEntity } from "@entities/base.entity";
-import { PostgresProvider } from "@providers/database/postgres/postgres.provider";
+import { SQLiteProvider } from "@providers/database/sqlite/sqlite.provider";
 
 @provide(BaseRepository)
 class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
     protected tableName!: string;
 
     async create(item: Omit<T, "id">): Promise<T | null> {
-        const keys = Object.keys(item).join(", ");
+        const fields = Object.keys(item);
         const values = Object.values(item);
-        const valuesPlaceholders = values
-            .map((_, index) => `$${index + 1}`)
-            .join(", ");
+        const placeholders = fields.map((_, index) => "?").join(", ");
 
-        const result = await PostgresProvider.dataSource.query(
-            `INSERT INTO ${this.tableName} (${keys}) VALUES (${valuesPlaceholders}) RETURNING *`,
+        const result = await SQLiteProvider.run(
+            `INSERT INTO ${this.tableName} (${fields.join(", ")}) VALUES (${placeholders})`,
             values,
         );
 
-        return result.rows[0] || null;
+        const id = result.lastID;
+        if (!id) {
+            return null;
+        }
+
+        return { ...item, id } as T;
     }
 
     async update(item: T): Promise<T | null> {
@@ -28,45 +31,42 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
             throw new Error("Missing id field in the update object");
         }
 
-        const fields = Object.keys(item);
-        const values = Object.values(item);
-        const updates = fields.map((key, index) => `${key} = $${index + 1}`);
+        const fields = Object.keys(item).filter((key) => key !== "id");
+        const values = Object.values(item).filter((_, index) => index !== 0);
+        const updates = fields.map((key) => `${key} = ?`);
         const query = `UPDATE ${this.tableName} SET ${updates.join(
             ", ",
-        )} WHERE id = $${fields.length + 1} RETURNING *`;
+        )} WHERE id = ?`;
 
-        const result = await PostgresProvider.dataSource.query(query, [
-            ...values,
-            id,
-        ]);
+        await SQLiteProvider.run(query, [...values, id]);
 
-        return result.rows[0] || null;
+        return item;
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await PostgresProvider.dataSource.query(
-            `DELETE FROM ${this.tableName} WHERE id = $1`,
+        const result = await SQLiteProvider.run(
+            `DELETE FROM ${this.tableName} WHERE id = ?`,
             [id],
         );
 
-        return result.rowCount > 0;
+        return result.changes > 0;
     }
 
     async find(id: string): Promise<T | null> {
-        const result = await PostgresProvider.dataSource.query(
-            `SELECT * FROM ${this.tableName} WHERE id = $1`,
+        const result = await SQLiteProvider.get(
+            `SELECT * FROM ${this.tableName} WHERE id = ?`,
             [id],
         );
 
-        return result.rows[0] || null;
+        return result || null;
     }
 
     async findAll(): Promise<T[]> {
-        const result = await PostgresProvider.dataSource.query(
+        const result = await SQLiteProvider.all(
             `SELECT * FROM ${this.tableName}`,
         );
 
-        return result.rows;
+        return result;
     }
 }
 
