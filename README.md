@@ -8,3 +8,5 @@ This repository contains examples of how to use ExpressoTS.
 | --------------------------------------------------- | --------------------------------------------------------- |
 | [ExpressoTS + MySQL](./expressots-mysql/)           | A basic example of how to use ExpressoTS with MySQL.      |
 | [ExpressoTS + PostgreSQL](./expressots-postgresql/) | A basic example of how to use ExpressoTS with PostgreSQL. |
+| [ExpressoTS + SQLite](./expressots-sqlite/)         | A basic example of how to use ExpressoTS with SQLite.     |
+

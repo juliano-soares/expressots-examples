@@ -2,7 +2,6 @@ import { provide } from "inversify-binding-decorators";
 import { IBaseRepository } from "./base-repository.interface";
 import { IEntity } from "@entities/base.entity";
 import { SqliteProvider } from "@providers/database/sqlite/sqlite.provider";
-
 @provide(BaseRepository)
 class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
     protected tableName!: string;
@@ -15,12 +14,17 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
             ", ",
         )}) VALUES (${placeholders.join(", ")})`;
 
-        const result = await SqliteProvider.dataSource.run(query, values);
-
-        return null;
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.run(query, values, (err: any) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(item as T);
+            });
+        });
     }
 
-    update(item: T): T | null {
+    async update(item: T): Promise<T | null> {
         const id = item.id;
         if (!id) {
             throw new Error("Missing id field in the update object");
@@ -33,38 +37,62 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
             ", ",
         )} WHERE id = ?`;
 
-        // await SQLiteProvider.run(query, [...values, id]);
-
-        return item;
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.run(
+                query,
+                [...values, id],
+                (err: any) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(item);
+                },
+            );
+        });
     }
 
-    delete(id: string): boolean {
-        // const result = await SQLiteProvider.run(
-        //     `DELETE FROM ${this.tableName} WHERE id = ?`,
-        //     [id],
-        // );
-
-        // return result.changes > 0;
-        return true;
+    async delete(id: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.run(
+                `DELETE FROM ${this.tableName} WHERE id = ?`,
+                [id],
+                (err: any) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(true);
+                },
+            );
+        });
     }
 
-    find(id: string): T | null {
-        // const result = await SQLiteProvider.get(
-        //     `SELECT * FROM ${this.tableName} WHERE id = ?`,
-        //     [id],
-        // );
-
-        // return result || null;
-        return null;
+    async find(id: string): Promise<T | null> {
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.get(
+                `SELECT * FROM ${this.tableName} WHERE id = ?`,
+                [id],
+                (err: any, row: any) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(row ? (row as unknown as T) : null);
+                },
+            );
+        });
     }
 
-    findAll(): T[] {
-        // const result = await SQLiteProvider.all(
-        //     `SELECT * FROM ${this.tableName}`,
-        // );
-
-        // return result;
-        return [];
+    async findAll(): Promise<T[]> {
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.all(
+                `SELECT * FROM ${this.tableName}`,
+                (err: any, rows) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(rows as T[] | []);
+                },
+            );
+        });
     }
 }
 

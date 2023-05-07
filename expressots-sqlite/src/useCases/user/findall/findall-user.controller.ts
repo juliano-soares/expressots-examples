@@ -10,8 +10,8 @@ class FindAllUserController extends BaseController {
     }
 
     @httpGet("/")
-    execute(@response() res: any): IFindAllUserResponseDTO {
-        return this.callUseCase(
+    async execute(@response() res: any): Promise<IFindAllUserResponseDTO> {
+        return this.callUseCaseAsync(
             this.findallUserUseCase.execute(),
             res,
             StatusCode.OK,

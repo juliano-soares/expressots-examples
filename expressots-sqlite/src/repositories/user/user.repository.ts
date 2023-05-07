@@ -10,13 +10,19 @@ class UserRepository extends BaseRepository<User> {
         this.tableName = "users";
     }
 
-    findByEmail(email: string): User | null {
-        const result = SqliteProvider.dataSource.run(
-            `SELECT * FROM ${this.tableName} WHERE email = ?`,
-            [email],
-        );
-
-        return null;
+    findByEmail(email: string): Promise<User | null> {
+        return new Promise((resolve, reject) => {
+            SqliteProvider.dataSource.get(
+                `SELECT * FROM ${this.tableName} WHERE email = ?`,
+                [email],
+                (err: any, row: any) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(row ? (row as unknown as User) : null);
+                },
+            );
+        });
     }
 }
 
