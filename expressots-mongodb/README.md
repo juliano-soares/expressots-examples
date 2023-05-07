@@ -8,27 +8,27 @@
           <p><strong>+</strong></p>
         </td>
         <td align="center">
-          <img src="https://avatars.githubusercontent.com/u/177543?s=200&v=4" width="100px" alt="logo PostgreSQL" />
-          <p><strong>PostgreSQL</strong></p>
+          <img src="https://avatars.githubusercontent.com/u/45120?s=200&v=4" width="100px" alt="logo MongoDB" />
+          <p><strong>MongoDB</strong></p>
         </td>
     </tr>
 </table>
 
-A project example of Expresso TS framework with PostgreSQL database 💾
+A project example of Expresso TS framework with MongoDB database 💾
 
 ## Project Dependences
 
 - NodeJS
 - Docker 
-- PostgreSQL
+- MongoDB
 - Expresso TS CLI
 
 ## Tutorial using docker in development
 
-- installing docker [Docker Download](https://docs.docker.com/engine/install/ubuntu/)
+- Installing docker [Docker Download](https://docs.docker.com/engine/install/ubuntu/)
 - Installing NodeJS: [NodeJS Dowload](https://nodejs.org/en/download)
 - Installing Expresso TS CLI: [npm](https://www.npmjs.com/package/@expressots/cli) [yarn](https://yarnpkg.com/package/@expressots/cli)
-- installind Docker Compose: [Docker Compose](https://docs.docker.com/compose/)
+- Installind Docker Compose: [Docker Compose](https://docs.docker.com/compose/)
 
 Use the following command with your package manager in your command shell:
 ```shell
@@ -44,7 +44,7 @@ npm install @expressots/cli
 For create a Expresso TS CLI insert a command in your terminal this command: 
 
 ```bash
-expressots new expressots-postgresql -p yarn -t opinionated
+expressots new expressots-mongodb -p yarn -t opinionated
 ```
 
 Open your project in your favorite IDE and follow the next steps.
@@ -61,22 +61,21 @@ FILE=general #log file name
 FOLDER=logs #log folder name
 
 # Database
-POSTGRES_HOST=localhost
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=postgres
-POSTGRES_PORT=5432
+MONGODB_PORT=27017
+MONGODB_DATABASE=expressots
+MONGODB_PASSWORD=expressots
+MONGODB_USERNAME=expressots
 ```
-- Add postgres with the command:
+- Add MongoDB with the command:
 
 ```bash
 # Using yarn
-yarn add pg
-yarn add @types/pg -D
+yarn add mongodb
+yarn add @types/mongodb -D
 
 # Using npm
-npm install pg
-npm install @types/pg -D
+npm install mongodb
+npm install @types/mongodb -D
 ```
 
 - Creating a Dockerfile
@@ -111,29 +110,29 @@ logs
 version: "3.7"
 services:
   database:
-    image: postgres
-    container_name: postgres
+    image: mongo:latest
+    container_name: mongodb
     restart: always
     ports:
-      - 5432:${POSTGRES_PORT}
+      - ${MONGODB_PORT}:27017
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      MONGO_INITDB_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
     volumes:
-      - pgdata:/data/postgres
+      - mongodbdata:/data/mongodbdata
 volumes:
-  pgdata:
+  mongodbdata:
     driver: local
 ```
 
-- Building Docker and Dcoker Compose
+- Building Docker and Docker Compose
 
 ```bash
 docker build .
 docker-compose up
 ```
-**Ready now you have postgresql database running with docker**
+**Ready now you have MongoDB database running with docker**
 
 Your next steps now are to interact with the database by creating tables, adding new entities, querying, deleting and changing data.
 
@@ -142,116 +141,77 @@ Your next steps now are to interact with the database by creating tables, adding
 Create a provider with this command using ExpressoTS CLI:
 
 ```
-expressots generate p database/postgres/postgres
+expressots generate p database/mongodb/mongodb
 ```
 
-This command will generate a provider file that will be our connection with postgres, following the file structure.
+This command will generate a provider file that will be our connection with mmongodb, following the file structure.
 
 ```
 project-name/
 ├── src/
 |   ├── providers/
 │       ├── database/
-|           ├── postgres/
-|               ├── postgres.provider.ts
+|           ├── mongodb/
+|               ├── mongodb.provider.ts
 |
 ```
 
-Modify the file "postgres.provider.ts" to have a Postgres connection.
+Modify the file "mongodb.provider.ts" to have a MongoDB connection.
+To add new collections to your MongoDB connection, you just need to insert the collection name into the collections array of the createCollections method.
 ```ts
 import { LogLevel, log } from "@expressots/core";
 import ENV from "env";
 import { provide } from "inversify-binding-decorators";
-import { Client } from "pg";
+import { Db, MongoClient } from "mongodb";
 
-@provide(PostgresProvider)
-class PostgresProvider {
-    static dataSource: Client;
+@provide(MongodbProvider)
+class MongodbProvider {
+    static client: MongoClient;
+    static dataSource: Db;
 
     static async connect() {
-        PostgresProvider.dataSource = new Client({
-            user: ENV.Database.POSTGRES_USER,
-            host: ENV.Database.POSTGRES_HOST,
-            database: ENV.Database.POSTGRES_DB,
-            password: ENV.Database.POSTGRES_PASSWORD,
-            port: ENV.Database.POSTGRES_PORT,
-        });
+        log(LogLevel.Info, "Connecting to MongoDB", "mongodb-provider");
+        this.client = new MongoClient(
+            `mongodb://${ENV.Database.host}:${ENV.Database.port}/${ENV.Database.database}`,
+        );
+        await this.client.connect();
 
-        log(LogLevel.Info, "Connecting to Postgres", "postgres-provider");
-        return await PostgresProvider.dataSource.connect();
+        this.dataSource = this.client.db(ENV.Database.database);
+        this.createCollections();
+        log(LogLevel.Info, "Connected to MongoDB", "mongodb-provider");
     }
 
     static async disconnect() {
-        log(LogLevel.Info, "Disconnecting to Postgres", "postgres-provider");
-        return await PostgresProvider.dataSource.end();
+        await this.client.close();
+        log(LogLevel.Info, "Disconnecting from MongoDB", "mongodb-provider");
     }
 
-    static async seeds() {
-    }
-}
-
-export { PostgresProvider };
-```
-
-- For this example, let's create the users table: 
-Now let's create the user entity, for this we will create a folder called "seeds" in the following directory "src/providers/database/postgres" and inside this folder we will create a file called "user.ts" which we will add the following query to create our table in the database.
-
-```ts
-import { PostgresProvider } from "../postgres.provider";
-
-class UserTable {
-    static async execute() {
-        const query = `
-      		CREATE TABLE IF NOT EXISTS users (
-        	id VARCHAR PRIMARY KEY,
-        	name TEXT NOT NULL,
-        	email TEXT NOT NULL
-      	)`;
-
-        await PostgresProvider.dataSource.query(query);
-    }
-}
-
-export { UserTable };
-```
-
-- Now import and add the method to create the table in the postgres provider, thus getting the file.
-
-```ts
-import { LogLevel, log } from "@expressots/core";
-import ENV from "env";
-import { provide } from "inversify-binding-decorators";
-import { Client } from "pg";
-import { UserTable } from "./seeds/user";
-
-@provide(PostgresProvider)
-class PostgresProvider {
-    static dataSource: Client;
-
-    static async connect() {
-        PostgresProvider.dataSource = new Client({
-            user: ENV.Database.POSTGRES_USER,
-            host: ENV.Database.POSTGRES_HOST,
-            database: ENV.Database.POSTGRES_DB,
-            password: ENV.Database.POSTGRES_PASSWORD,
-            port: ENV.Database.POSTGRES_PORT,
-        });
-
-        log(LogLevel.Info, "Connecting to Postgres", "postgres-provider");
-        return await PostgresProvider.dataSource.connect();
-    }
-
-    static async disconnect() {
-        log(LogLevel.Info, "Disconnecting to Postgres", "postgres-provider");
-        return await PostgresProvider.dataSource.end();
-    }
-
-    static async seeds() {
-        UserTable.execute(); // This line creates the table if it doesn't exist
+    static async createCollections() {
+        try {
+            const collections = ["users"]; // Add new collection names here
+            const existingCollections = await this.dataSource
+                .listCollections()
+                .toArray();
+            for (const collection of collections) {
+                if (existingCollections.some((c) => c.name === collection)) {
+                    continue;
+                } else {
+                    await this.dataSource.createCollection(collection);
+                }
+            }
+            log(LogLevel.Info, "Created collections", "mongodb-provider");
+        } catch (error) {
+            console.log(error);
+            log(
+                LogLevel.Error,
+                "Error creating collections",
+                "mongodb-provider",
+            );
+        }
     }
 }
 
-export { PostgresProvider };
+export { MongodbProvider };
 ```
 
 - Add your database provider to the application in the application.ts file contained in the following file structure:
@@ -269,7 +229,7 @@ project-name/
 
 ```ts
 import { Application, Environments, LogLevel, log } from "@expressots/core";
-import { PostgresProvider } from "@providers/database/postgres/postgres.provider";
+import { MongodbProvider } from "@providers/database/mongodb/mongodb.provider";
 import { provide } from "inversify-binding-decorators";
 
 @provide(App)
@@ -279,13 +239,12 @@ class App extends Application {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected postServerInitialization(): void {
-        PostgresProvider.connect();
-        PostgresProvider.seeds();
+    protected async postServerInitialization(): Promise<void> {
+        await MongodbProvider.connect();
     }
 
-    protected serverShutdown(): void {
-        PostgresProvider.disconnect();
+    protected async serverShutdown(): Promise<void> {
+        MongodbProvider.disconnect();
         log(LogLevel.Info, "Server is shutting down", "logger-provider");
         super.serverShutdown();
     }
@@ -318,36 +277,33 @@ const ENV = {
         FOLDER: process.env.FOLDER as string,
     },
     Database: {
-        POSTGRES_HOST: process.env.POSTGRES_HOST as string,
-        POSTGRES_PORT: Number(process.env.POSTGRES_PORT),
-        POSTGRES_USER: process.env.POSTGRES_USER as string,
-        POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD as string,
-        POSTGRES_DB: process.env.POSTGRES_DB as string,
+        host: process.env.MONGODB_HOST as string,
+        user: process.env.MONGODB_USERNAME as string,
+        password: process.env.MONGODB_PASSWORD as string,
+        port: Number(process.env.MONGODB_PORT),
+        database: process.env.MONGODB_DATABASE as string,
     },
 };
 
 export default ENV;
 ```
 
-- Now that we have the connection with the database, i can start our application and see if the table was created, for this we will use the following command:
+- Now that we have the connection with the database, i can start our application and see if the database is connected, for this we will use the following command:
 
 ```bash
+# yarn
+yarn dev
+
+# npm
 npm run dev
 ```
 
-- Now let's check if the table was created, for this we will use your favorite database manager, in my case i will use [Beekeaper Studio](https://www.beekeeperstudio.io), and we will connect to our database, for this we will use the following data:
+- Now let's check if the database was created, for this we will use your favorite database manager, in my case i will use the VSCode Extension [MongoDB for VS Code](https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode), and we will connect to our database, for this we will use the following url:
 
+```bash
+mongodb://localhost:27017/expressots
 ```
-Host: localhost
-Port: 5432
-Database: postgres
-User: postgres
-Password: postgres
-```
-
-- Checked the connection, we will see the tables, and we will see that the users table was created.
-
-- In this example we already have an entity called user let's just modify the base-repository to accept postgres.
+- In this example we already have an entity called user let's just modify the base-repository to accept sql into MongoDB.
 
 This modification will allow us to create a generic repository that will be used by all repositories that we will create in the future. Using this approach we will not need to create the same methods in all repositories, we will only need to create the methods that are specific to each repository.
 
@@ -361,72 +317,66 @@ project-name/
 import { provide } from "inversify-binding-decorators";
 import { IBaseRepository } from "./base-repository.interface";
 import { IEntity } from "@entities/base.entity";
-import { PostgresProvider } from "@providers/database/postgres/postgres.provider";
+import { OptionalUnlessRequiredId } from "mongodb";
+import { MongodbProvider } from "@providers/database/mongodb/mongodb.provider";
+import { log } from "console";
 
 @provide(BaseRepository)
 class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
     protected tableName!: string;
 
-    async create(item: Omit<T, "id">): Promise<T | null> {
-        const keys = Object.keys(item).join(", ");
-        const values = Object.values(item);
-        const valuesPlaceholders = values
-            .map((_, index) => `$${index + 1}`)
-            .join(", ");
-
-        const result = await PostgresProvider.dataSource.query(
-            `INSERT INTO ${this.tableName} (${keys}) VALUES (${valuesPlaceholders}) RETURNING *`,
-            values,
-        );
-
-        return result.rows[0] || null;
+    async create(item: OptionalUnlessRequiredId<T>): Promise<T | null> {
+        try {
+            const result = await MongodbProvider.dataSource
+                .collection(this.tableName)
+                .insertOne(item);
+            return { ...item, id: result.insertedId } as T | null;
+        } catch (err) {
+            log(err, "error", "base-repository");
+            return null;
+        }
     }
 
     async update(item: T): Promise<T | null> {
-        const id = item.id;
-        if (!id) {
-            throw new Error("Missing id field in the update object");
+        try {
+            const result = await MongodbProvider.dataSource
+                .collection(this.tableName)
+                .updateOne({ id: item.id }, { $set: item });
+
+            if (result.modifiedCount === 1) {
+                return item;
+            }
+
+            return null;
+        } catch (err) {
+            log(err, "error", "base-repository");
+            return null;
         }
-
-        const fields = Object.keys(item);
-        const values = Object.values(item);
-        const updates = fields.map((key, index) => `${key} = $${index + 1}`);
-        const query = `UPDATE ${this.tableName} SET ${updates.join(
-            ", ",
-        )} WHERE id = $${fields.length + 1} RETURNING *`;
-
-        const result = await PostgresProvider.dataSource.query(query, [
-            ...values,
-            id,
-        ]);
-
-        return result.rows[0] || null;
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await PostgresProvider.dataSource.query(
-            `DELETE FROM ${this.tableName} WHERE id = $1`,
-            [id],
-        );
-
-        return result.rowCount > 0;
+        const result = await MongodbProvider.dataSource
+            .collection(this.tableName)
+            .deleteOne({ id });
+        if (result.deletedCount === 1) {
+            return true;
+        }
+        return false;
     }
 
     async find(id: string): Promise<T | null> {
-        const result = await PostgresProvider.dataSource.query(
-            `SELECT * FROM ${this.tableName} WHERE id = $1`,
-            [id],
-        );
-
-        return result.rows[0] || null;
+        const result = await MongodbProvider.dataSource
+            .collection(this.tableName)
+            .findOne({ id });
+        return result as T | null;
     }
 
     async findAll(): Promise<T[]> {
-        const result = await PostgresProvider.dataSource.query(
-            `SELECT * FROM ${this.tableName}`,
-        );
-
-        return result.rows;
+        const result = await MongodbProvider.dataSource
+            .collection(this.tableName)
+            .find()
+            .toArray();
+        return result as T[] | [];
     }
 }
 
@@ -436,8 +386,10 @@ export { BaseRepository };
 - We will also need to modify the base-repository interface with the following code:
 
 ```ts
+import { OptionalUnlessRequiredId } from "mongodb";
+
 interface IBaseRepository<T> {
-    create(item: Omit<T, "id">): Promise<T | null>;
+    create(item: OptionalUnlessRequiredId<T>): Promise<T | null>;
     update(item: T): Promise<T | null>;
     delete(id: string): Promise<boolean>;
     find(id: string): Promise<T | null>;
@@ -448,10 +400,10 @@ export { IBaseRepository };
 ```
 
 - Now let's modify our user.repository.ts file to have the following code:
-
+  
 ```ts
 import { provide } from "inversify-binding-decorators";
-import { PostgresProvider } from "@providers/database/postgres/postgres.provider";
+import { MongodbProvider } from "@providers/database/mongodb/mongodb.provider";
 import { BaseRepository } from "@repositories/base-repository";
 import { User } from "@entities/user.entity";
 
@@ -463,11 +415,11 @@ class UserRepository extends BaseRepository<User> {
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        const result = await PostgresProvider.dataSource.query(
-            `SELECT * FROM users WHERE email = ($1)`,
-            [email],
-        );
-        return result.rows[0] || null;
+        const result = await MongodbProvider.dataSource
+            .collection(this.tableName)
+            .findOne({ email });
+
+        return result as User | null;
     }
 }
 

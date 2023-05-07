@@ -29,8 +29,12 @@ A project example of Expresso TS framework with SQLite database 💾
 - Installing Expresso TS CLI: [npm](https://www.npmjs.com/package/@expressots/cli) [yarn](https://yarnpkg.com/package/@expressots/cli)
 
 Use the following command with your package manager in your command shell:
-```
+```shell
+# yarn
 yarn add @expressots/cli
+
+# npm
+npm install @expressots/cli
 ```
 
 - Creating a Expresso TS project with CLI: [ExpressoTS CLI Docs](https://expresso-ts.com/docs/cli/overview)

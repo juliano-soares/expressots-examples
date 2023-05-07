@@ -31,8 +31,12 @@ A project example of Expresso TS framework with MySQL database 💾
 - Installind Docker Compose: [Docker Compose](https://docs.docker.com/compose/)
 
 Use the following command with your package manager in your command shell:
-```
+```shell
+# yarn
 yarn add @expressots/cli
+
+# npm
+npm install @expressots/cli
 ```
 
 - Creating a Expresso TS project with CLI: [ExpressoTS CLI Docs](https://expresso-ts.com/docs/cli/overview)
