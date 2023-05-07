@@ -25,10 +25,8 @@ A project example of Expresso TS framework with SQLite database 💾
 
 ## Tutorial using docker in development
 
-- installing docker [Docker Download](https://docs.docker.com/engine/install/ubuntu/)
 - Installing NodeJS: [NodeJS Dowload](https://nodejs.org/en/download)
 - Installing Expresso TS CLI: [npm](https://www.npmjs.com/package/@expressots/cli) [yarn](https://yarnpkg.com/package/@expressots/cli)
-- installind Docker Compose: [Docker Compose](https://docs.docker.com/compose/)
 
 Use the following command with your package manager in your command shell:
 ```
