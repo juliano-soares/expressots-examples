@@ -21,9 +21,10 @@ A project example of Expresso TS framework with MongoDB database 💾
 - NodeJS
 - Docker 
 - MongoDB
+- Expresso TS
 - Expresso TS CLI
 
-## Tutorial using docker in development
+## Tutorial
 
 - Installing docker [Docker Download](https://docs.docker.com/engine/install/ubuntu/)
 - Installing NodeJS: [NodeJS Dowload](https://nodejs.org/en/download)
@@ -41,15 +42,16 @@ npm install @expressots/cli
 
 - Creating a Expresso TS project with CLI: [ExpressoTS CLI Docs](https://expresso-ts.com/docs/cli/overview)
 
-For create a Expresso TS CLI insert a command in your terminal this command: 
+For create a Expresso TS project with CLI insert in your terminal this command: 
 
 ```bash
 expressots new expressots-mongodb -p yarn -t opinionated
 ```
+this command will create a new expressots project called expressots-mongodb with yarn for managing your packages and using a template oinionated. 
 
 Open your project in your favorite IDE and follow the next steps.
 
-Configure/Create the .env file based on the example
+Configure/Create the .env file in base of your project based on the following example:
 
 ```
 # Application
@@ -66,7 +68,7 @@ MONGODB_DATABASE=expressots
 MONGODB_PASSWORD=expressots
 MONGODB_USERNAME=expressots
 ```
-- Add MongoDB with the command:
+- Add mongodb and @tpyes/mongodb in your project with the command:
 
 ```bash
 # Using yarn

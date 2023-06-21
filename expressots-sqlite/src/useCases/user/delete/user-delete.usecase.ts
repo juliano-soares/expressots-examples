@@ -4,11 +4,12 @@ import {
     IUserDeleteRequestDTO,
     IUserDeleteResponseDTO,
 } from "./user-delete.dto";
-import { AppError, Report, StatusCode } from "@expressots/core";
+import { Report, StatusCode } from "@expressots/core";
 
 @provide(UserDeleteUseCase)
 class UserDeleteUseCase {
-    constructor(private userRepository: UserRepository) {}
+    // eslint-disable-next-line prettier/prettier
+    constructor(private userRepository: UserRepository) { }
 
     async execute(
         payload: IUserDeleteRequestDTO,
@@ -16,15 +17,13 @@ class UserDeleteUseCase {
         try {
             const { id } = payload;
 
-            const userDelete = await this.userRepository.delete(id);
+            const userDelete = this.userRepository.delete(id);
 
             if (!userDelete) {
                 Report.Error(
-                    new AppError(
-                        StatusCode.BadRequest,
-                        "User not found",
-                        "user-delete-usecase",
-                    ),
+                    "User not found",
+                    StatusCode.BadRequest,
+                    "user-delete-usecase",
                 );
             }
 

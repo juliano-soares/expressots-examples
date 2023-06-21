@@ -1,9 +1,9 @@
 interface IBaseRepository<T> {
-    create(item: Omit<T, "id">): Promise<T | null>;
-    update(item: T): Promise<T | null>;
-    delete(id: string): Promise<boolean>;
-    find(id: string): Promise<T | null>;
-    findAll(): Promise<T[]>;
+    create(item: T): T | null;
+    update(item: T): T | null;
+    delete(id: string): boolean;
+    find(id: string): T | null;
+    findAll(): T[];
 }
 
 export { IBaseRepository };

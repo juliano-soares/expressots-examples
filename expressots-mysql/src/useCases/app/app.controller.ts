@@ -1,15 +1,17 @@
-import { BaseController } from "@expressots/core";
+import { BaseController, StatusCode } from "@expressots/core";
 import { controller, httpGet, response } from "inversify-express-utils";
+import { Response } from "express";
+import { AppUseCase } from "./app.usecase";
 
 @controller("/")
 class AppController extends BaseController {
-    constructor() {
+    constructor(private appUseCase: AppUseCase) {
         super("app-controller");
     }
 
     @httpGet("/")
-    execute(@response() res: any): string {
-        return res.send("Hello from Expresso TS App");
+    execute(@response() res: Response): string {
+        return this.callUseCase(this.appUseCase.execute(), res, StatusCode.OK);
     }
 }
 

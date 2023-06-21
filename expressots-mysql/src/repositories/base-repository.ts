@@ -19,7 +19,7 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
 
         if (Array.isArray(result)) {
             const insertedRow = result[0];
-            if ("affectedRows" in insertedRow) {
+            if ("affectedRows" in (insertedRow as any)) {
                 return item as T;
             }
         }
@@ -48,7 +48,7 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
 
         if (Array.isArray(result)) {
             const updatedRow = result[0];
-            if ("affectedRows" in updatedRow) {
+            if ("affectedRows" in (updatedRow as any)) {
                 return item as T;
             }
         }
@@ -74,7 +74,7 @@ class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
             [id],
         );
 
-        return rows[0] as T | null;
+        return (rows as any)[0] as T | null;
     }
 
     async findAll(): Promise<T[]> {

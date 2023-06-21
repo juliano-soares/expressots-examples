@@ -1,98 +1,56 @@
+import { inject } from "inversify";
 import { provide } from "inversify-binding-decorators";
 import { IBaseRepository } from "./base-repository.interface";
 import { IEntity } from "@entities/base.entity";
-import { SqliteProvider } from "@providers/database/sqlite/sqlite.provider";
+import { InMemoryDB } from "@providers/db-in-memory/db-in-memory.provider";
+
 @provide(BaseRepository)
 class BaseRepository<T extends IEntity> implements IBaseRepository<T> {
-    protected tableName!: string;
+    @inject(InMemoryDB) private inMemoryDB!: InMemoryDB;
 
-    async create(item: Omit<T, "id">): Promise<T | null> {
-        const fields = Object.keys(item);
-        const values = Object.values(item);
-        const placeholders = fields.map(() => "?");
-        const query = `INSERT INTO ${this.tableName} (${fields.join(
-            ", ",
-        )}) VALUES (${placeholders.join(", ")})`;
-
-        return new Promise((resolve, reject) => {
-            SqliteProvider.dataSource.run(query, values, (err: any) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(item as T);
-            });
-        });
+    protected get USERDB(): T[] {
+        return [...this.inMemoryDB.getUserDB()] as T[];
     }
 
-    async update(item: T): Promise<T | null> {
-        const id = item.id;
-        if (!id) {
-            throw new Error("Missing id field in the update object");
+    create(item: T): T | null {
+        const existingItem = this.USERDB.find((user) => user.id === item.id);
+        if (existingItem) {
+            throw new Error(`Object with id ${item.id} already exists`);
         }
 
-        const fields = Object.keys(item).filter((key) => key !== "id");
-        const values = Object.values(item).filter((_, index) => index !== 0);
-        const updates = fields.map((key) => `${key} = ?`);
-        const query = `UPDATE ${this.tableName} SET ${updates.join(
-            ", ",
-        )} WHERE id = ?`;
-
-        return new Promise((resolve, reject) => {
-            SqliteProvider.dataSource.run(
-                query,
-                [...values, id],
-                (err: any) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve(item);
-                },
-            );
-        });
+        this.inMemoryDB.getUserDB().push(item);
+        return item;
     }
 
-    async delete(id: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            SqliteProvider.dataSource.run(
-                `DELETE FROM ${this.tableName} WHERE id = ?`,
-                [id],
-                (err: any) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve(true);
-                },
-            );
-        });
+    delete(id: string): boolean {
+        const db = this.inMemoryDB.getUserDB();
+        const index: number = db.findIndex((item) => item.id === id);
+
+        if (index !== -1) {
+            db.splice(index, 1);
+            return true;
+        }
+        return false;
     }
 
-    async find(id: string): Promise<T | null> {
-        return new Promise((resolve, reject) => {
-            SqliteProvider.dataSource.get(
-                `SELECT * FROM ${this.tableName} WHERE id = ?`,
-                [id],
-                (err: any, row: any) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve(row ? (row as unknown as T) : null);
-                },
-            );
-        });
+    update(item: T): T | null {
+        const db = this.inMemoryDB.getUserDB();
+        const index: number = db.findIndex((i) => i.id === item.id);
+
+        if (index !== -1) {
+            db[index] = item;
+            return item;
+        }
+        return null;
     }
 
-    async findAll(): Promise<T[]> {
-        return new Promise((resolve, reject) => {
-            SqliteProvider.dataSource.all(
-                `SELECT * FROM ${this.tableName}`,
-                (err: any, rows) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve(rows as T[] | []);
-                },
-            );
-        });
+    find(id: string): T | null {
+        const user = this.USERDB.find((item) => item.id === id);
+        return user || null;
+    }
+
+    findAll(): T[] {
+        return this.USERDB;
     }
 }
 

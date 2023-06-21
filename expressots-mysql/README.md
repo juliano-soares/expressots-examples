@@ -72,10 +72,12 @@ MYSQL_PORT=3306
 ```bash
 # Using yarn
 yarn add mysql2
+yarn add bluebird
 yarn add @types/mysql2 -D
 
 # Using npm
 npm install mysql2
+npm install bluebird
 npm install @types/mysql2 -D
 ```
 

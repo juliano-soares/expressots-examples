@@ -16,7 +16,7 @@ class UserRepository extends BaseRepository<User> {
             [email],
         );
 
-        if (Array.isArray(result)) {
+        if (Array.isArray(result) && result[0]) {
             const user = result[0][0];
             if (user) {
                 return user as User;

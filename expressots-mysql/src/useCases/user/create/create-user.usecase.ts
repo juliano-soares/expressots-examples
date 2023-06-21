@@ -1,4 +1,4 @@
-import { AppError, Report, StatusCode } from "@expressots/core";
+import { Report, StatusCode } from "@expressots/core";
 import { provide } from "inversify-binding-decorators";
 import {
     ICreateUserRequestDTO,
@@ -9,7 +9,8 @@ import { User } from "@entities/user.entity";
 
 @provide(CreateUserUseCase)
 class CreateUserUseCase {
-    constructor(private userRepository: UserRepository) {}
+    // eslint-disable-next-line prettier/prettier
+    constructor(private userRepository: UserRepository) { }
 
     async execute(
         data: ICreateUserRequestDTO,
@@ -21,11 +22,9 @@ class CreateUserUseCase {
 
             if (userExist) {
                 Report.Error(
-                    new AppError(
-                        StatusCode.BadRequest,
-                        "User already exists",
-                        "create-user-usecase",
-                    ),
+                    "User already exists",
+                    StatusCode.BadRequest,
+                    "create-user-usecase",
                 );
             }
 
